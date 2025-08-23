@@ -11,9 +11,8 @@ Installation
 
 ### Requirements
 
-* `qemu-base or qemu-system-x86`
-* `qemu-desktop or qemu-ui-gtk`
-* ‍‍`qemu-hw-display-virtio-vga`
+* `qemu-system-x86`
+* `qemu-desktop`
 * `grub`
   
 ### Using the installer script
