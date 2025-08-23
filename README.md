@@ -37,7 +37,7 @@ makepkg -si
 ## Usage
 
 ```console
-# COLUMNS=80 grub-qemu --help
+grub-qemu --help
 Usage: grub-qemu [--qemu "Argument"] [--custom-grub "Directory"] [--enable-kvm]
  [--disable-full-screen] [--disable-theme] [-v] [-h]
 Options:
