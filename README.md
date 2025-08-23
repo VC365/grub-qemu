@@ -13,6 +13,7 @@ Installation
 
 * `qemu-base or qemu-system-x86`
 * `qemu-desktop or qemu-ui-gtk`
+* ‍‍`qemu-hw-display-virtio-vga`
 * `grub`
   
 ### Using the installer script
