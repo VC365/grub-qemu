@@ -51,4 +51,6 @@ Options:
   -v, --version                     Show version.
                  Credit : VC365 (https://github.com/VC365) 
 ```
+## Author
 
+[VC365](https://github.com/VC365)
