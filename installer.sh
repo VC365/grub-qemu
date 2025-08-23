@@ -4,7 +4,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 DIR_APP="/usr/bin"
-deps=(qemu-system-x86 qemu-ui-gtk grub-mkrescue)
+deps=(qemu-system-x86_64 grub-mkrescue)
 missing=()
 SCRIPT_DIR="$(cd -- "$(dirname "$0")" && pwd)"
 
