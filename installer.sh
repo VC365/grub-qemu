@@ -29,6 +29,12 @@ fi
   	fi
 	  chmod a+x "$SCRIPT_DIR/grub-qemu"
 	  sudo cp "$SCRIPT_DIR/grub-qemu" "$DIR_APP"
+	  
+	  if [ ! -f "/usr/share/ovmf/x64/OVMF.4m.fd" ]; then
+	  	sudo mkdir -p /usr/share/ovmf/x64
+	  	sudo cp "$SCRIPT_DIR/OVMF.4m.fd" "/usr/share/ovmf/x64/"
+	  fi
+	  
   	echo -e "${GREEN} grub-qemu Installed!${NC}"
 }
 
