@@ -55,7 +55,6 @@ int run(const char* exec,const char* argument, const char* optional_arg, const c
     char command[212];
     snprintf(command, sizeof(command), "%s %s %s 2>/dev/null", exec,argument,optional_arg);
     const int result = system(command);
-
     if (result != 0) {
         printf("%s\n",msg_error);
         return 0;

@@ -8,6 +8,7 @@
 #include "src/temp.h"
 #include <sys/stat.h>
 #include <getopt.h>
+#include <regex.h>
 
 //# variables
 char grub_dir[20];
@@ -17,19 +18,55 @@ char monitor_res[50];
 char iso[50];
 char dir[50];
 char boot_dir[50];
-char theme_dir[156];
+char theme_dir[256];
 char themeX_dir[100];
-const char* version="0.1.1";
+const char* version = "0.1.3";
 
 //argument variables
-char arg_static[256];
-char* q_arg_optional="";
-int use_theme=1;
-char* kvm="";
-char* fullS="--full-screen";
-char* custom_grub_dir="";
+char arg_static[300];
+char* q_arg_optional = "";
+int use_theme = 1;
+char* kvm = "";
+char* fullS = "--full-screen";
+char* custom_grub_dir = "";
+int custom_theme = 0;
+int custom_resolution = 0;
 
-int arguments(const int argc, char* argv[],int a)
+// void print_vars()
+// {
+//     printf("grub_dir: %s\n", grub_dir);
+//     printf("grub_dirX: %s\n", grub_dirX);
+//     printf("grub_cfgX: %s\n", grub_cfgX);
+//     printf("monitor_res: %s\n", monitor_res);
+//     printf("iso: %s\n", iso);
+//     printf("dir: %s\n", dir);
+//     printf("boot_dir: %s\n", boot_dir);
+//     printf("theme_dir: %s\n", theme_dir);
+//     printf("themeX_dir: %s\n", themeX_dir);
+//     printf("version: %s\n", version);
+//
+//     printf("arg_static: %s\n", arg_static);
+//     printf("q_arg_optional: %s\n", q_arg_optional);
+//     printf("use_theme: %d\n", use_theme);
+//     printf("kvm: %s\n", kvm);
+//     printf("fullS: %s\n", fullS);
+//     printf("custom_grub_dir: %s\n", custom_grub_dir);
+//     printf("custom_theme: %d\n", custom_theme);
+//     printf("custom_resolution: %d\n", custom_resolution);
+// }
+
+int check_res(const char* resolution)
+{
+    regex_t regex;
+    if (regcomp(&regex, "^[0-9]+x[0-9]+$", REG_EXTENDED) == 0 && !regexec(&regex, resolution, 0, NULL, 0))
+    {
+        regfree(&regex);
+        return 1;
+    }
+    return 0;
+}
+
+int arguments(const int argc, char* argv[], int a)
 {
     int opt;
     const struct option options[] = {
@@ -37,13 +74,15 @@ int arguments(const int argc, char* argv[],int a)
         {"enable-kvm", no_argument, NULL, 'L'},
         {"disable-theme", no_argument, NULL, 'T'},
         {"custom-grub", required_argument, NULL, 'c'},
+        {"custom-theme", required_argument, NULL, 't'},
+        {"custom-resolution", required_argument, NULL, 'r'},
         {"disable-full-screen", no_argument, NULL, 'X'},
         {"help", no_argument, NULL, 'h'},
         {"version", no_argument, NULL, 'v'},
         {NULL, 0, NULL, 0}
     };
 
-    while ((opt = getopt_long(argc, argv, "q:hLvTcX", options, NULL)) != -1)
+    while ((opt = getopt_long(argc, argv, "q:hLvTc:Xt:r:", options, NULL)) != -1)
     {
         switch (opt)
         {
@@ -53,30 +92,52 @@ int arguments(const int argc, char* argv[],int a)
                 fprintf(stderr, "Error: Missing value for --qemu.\n");
                 exit(1);
             }
-            q_arg_optional=optarg;
+            q_arg_optional = optarg;
             break;
         case 'L':
-            kvm="--enable-kvm";
+            kvm = "--enable-kvm";
             break;
         case 'c':
-            if (access(optarg,F_OK)==-1)
+            if (access(optarg,F_OK) == -1)
             {
-                fprintf(stderr, "%s: No grub directory.\n",optarg);
+                fprintf(stderr, "%s: No grub directory.\n", optarg);
                 exit(1);
             }
-            custom_grub_dir=optarg;
+            custom_grub_dir = optarg;
+            break;
+        case 't':
+            if (access(optarg,F_OK) == -1)
+            {
+                fprintf(stderr, "%s: No theme directory.\n", optarg);
+                exit(1);
+            }
+            custom_theme = 1;
+            snprintf(theme_dir, sizeof(theme_dir), "%s", optarg);
+            break;
+        case 'r':
+            if (!check_res(optarg))
+            {
+                fprintf(stderr, "resolution invalid!? format: WxH");
+                exit(1);
+            }
+            custom_resolution = 1;
+            snprintf(monitor_res, sizeof(monitor_res), optarg);
             break;
         case 'T':
-            use_theme=0;
+            use_theme = 0;
             break;
         case 'X':
-            fullS="";
+            fullS = "";
             break;
         case 'h':
-            printf("Usage: %s [--size <icon_size>] [--utime <milliseconds>] [-h] [-v] [-f] [-n]\n", argv[0]);
+            printf(
+                "Usage: %s [--qemu \"Argument\"] [--custom-grub \"Directory\"] [--custom-theme \"Directory\"]\n      [--custom-resolution \"res\"] [--enable-kvm] [--disable-full-screen] [--disable-theme] [-v] [-h]\n",
+                argv[0]);
             printf("Options:\n");
             printf("  -q, --qemu \"Argument\"           Use custom argument for QEMU.\n");
             printf("  -c, --custom-grub \"Directory\"   Use custom grub.\n");
+            printf("  -t, --custom-theme \"Directory\"  Use custom theme (Automatically use font).\n");
+            printf("  -r, --custom-resolution \"res\"   Use custom resolution (Example 1366x768).\n");
             printf("  --enable-kvm                      Enable KVM for QEMU.\n");
             printf("  --disable-full-screen             Disable full screen mode.\n");
             printf("  --disable-theme                   Disable theme grub.\n\n");
@@ -85,7 +146,7 @@ int arguments(const int argc, char* argv[],int a)
             printf("                 Credit : VC365 (https://github.com/VC365) \n\n");
             exit(0);
         case 'v':
-            printf("grub-qemu %s",version);
+            printf("grub-qemu %s", version);
             exit(0);
         default:
             fprintf(stderr, "Invalid argument. Use -h or --help for usage info.\n");
@@ -114,39 +175,52 @@ int initialization(const int a)
     //  End--------------
 
     //  Resolution
-    FILE* resolution = popen("xrandr | grep '*' | awk '{print $1}'", "r");
-    if (resolution == NULL)
+    if (!custom_resolution)
     {
-        resolution = popen("wlr-randr | grep '*' | awk '{print $1}'", "r");
-    }
-    if (resolution != NULL)
-    {
-        if (fgets(monitor_res, sizeof(monitor_res), resolution) == NULL) {
-            fprintf(stderr, "Error: Failed to read resolution\n");
+        FILE* resolution = popen("xrandr | grep '*' | awk '{print $1}'", "r");
+        if (resolution == NULL)
+        {
+            resolution = popen("wlr-randr | grep '*' | awk '{print $1}'", "r");
+        }
+        if (resolution != NULL)
+        {
+            if (fgets(monitor_res, sizeof(monitor_res), resolution) == NULL)
+            {
+                fprintf(stderr, "Error: Failed to read resolution\n");
+                exit(1);
+            }
+            monitor_res[strcspn(monitor_res, "\n")] = 0;
+            if (strcmp(monitor_res, "1366x768") == 0) { snprintf(monitor_res, sizeof(monitor_res), "1360x768"); }
+        }
+        else
+        {
+            fprintf(stderr, "Error: Resolution command failed\n");
             exit(1);
         }
-        monitor_res[strcspn(monitor_res, "\n")] = 0;
-        if (strcmp(monitor_res, "1366x768") == 0) { snprintf(monitor_res, sizeof(monitor_res), "1360x768"); }
-    }else {
-        fprintf(stderr, "Error: Resolution command failed\n");
-        exit(1);
+        fclose(resolution);
     }
-    fclose(resolution);
     //  End--------------
 
     //  Get Theme DIR
-    char command[256];
-    snprintf(command, sizeof(command),
-             "dirname \"$(grep \"set theme=\" \"%s/grub.cfg\" 2>/dev/null | cut -d'=' -f2 | tr -d '\"' | sed 's|(\\$root)||')\"",
-             grub_dir);
-    FILE* get_theme_dir = popen(command, "r");
-    if (get_theme_dir != NULL)
+    if (!custom_theme)
     {
-        fgets(theme_dir, sizeof(theme_dir), get_theme_dir);
-        theme_dir[strcspn(theme_dir, "\n")] = 0;
-        if (strcmp(theme_dir, ".") == 0) { snprintf(theme_dir, sizeof(theme_dir), "notfound");use_theme=0; }
+        char command[256];
+        snprintf(command, sizeof(command),
+                 "dirname \"$(grep \"set theme=\" \"%s/grub.cfg\" 2>/dev/null | cut -d'=' -f2 | tr -d '\"' | sed 's|(\\$root)||')\"",
+                 grub_dir);
+        FILE* get_theme_dir = popen(command, "r");
+        if (get_theme_dir != NULL)
+        {
+            fgets(theme_dir, sizeof(theme_dir), get_theme_dir);
+            theme_dir[strcspn(theme_dir, "\n")] = 0;
+            if (strcmp(theme_dir, ".") == 0)
+            {
+                snprintf(theme_dir, sizeof(theme_dir), "notfound");
+                use_theme = 0;
+            }
+        }
+        fclose(get_theme_dir);
     }
-    fclose(get_theme_dir);
     //  End--------------
 
     snprintf(iso, sizeof(iso), "%s/iso", temp_dir);
@@ -183,26 +257,42 @@ int create_folders(const int a)
 
 int create_iso(const int a)
 {
-    snprintf(arg_static, sizeof(arg_static), "-i -E \"s|^[[:space:]]*set[[:space:]]+gfxmode=.*|set gfxmode=%s|\"",
-         monitor_res);
     if (use_theme)
     {
-        if (!run("sed", "-i -E \"s|^[[:space:]]*set[[:space:]]+theme=.*|set theme=\\$prefix/themeX/theme.txt|\"", grub_cfgX,
+        if (!run("sed", "-i -E \"s|^[[:space:]]*set[[:space:]]+theme=.*|set theme=\\$prefix/themeX/theme.txt|\"",
+                 grub_cfgX,
                  "can not edit"))
         {
-            printf("Error: Failed to apply theme settings to %s\n",grub_cfgX);
+            printf("Error: Failed to apply theme settings to %s\n", grub_cfgX);
         }
-
-        if (!run("sed", "-i -E \"s|^[[:space:]]*loadfont[[:space:]]+.*/([^/]+\\.pf2)|loadfont \\$prefix/themeX/\\1|\"",
-                 grub_cfgX, "can not edit"))
+        if (!custom_theme)
         {
-            printf("Error: Failed to apply theme settings to %s\n",grub_cfgX);
+            if (!run(
+                "sed", "-i -E \"s|^[[:space:]]*loadfont[[:space:]]+.*/([^/]+\\.pf2)|loadfont \\$prefix/themeX/\\1|\"",
+                grub_cfgX, "can not edit"))
+            {
+                printf("Error: Failed to apply theme settings to %s\n", grub_cfgX);
+            }
         }
-
+        else if (run(
+            "sed", "-i -E \"/^[[:space:]]*loadfont[[:space:]]+/d\"",
+            grub_cfgX, "can not edit"))
+        {
+            snprintf(arg_static, sizeof(arg_static),
+                     "\'for f in \"%s\"/*.pf2; do\n echo \"loadfont \\$prefix/themeX/$(basename \"$f\")\" >> \"%s\"\n done\'",
+                     themeX_dir, grub_cfgX);
+            if (!run("sh -c", arg_static, "", "can not edit"))
+            {
+                printf("Error: Failed to apply fonts\n %s", arg_static);
+                exit(1);
+            }
+        }
     }
+    snprintf(arg_static, sizeof(arg_static), "-i -E \"s|^[[:space:]]*set[[:space:]]+gfxmode=.*|set gfxmode=%s|\"",
+             monitor_res);
     if (!run("sed", arg_static, grub_cfgX, "can not create iso!"))
     {
-        printf("Error: Failed to apply resolution settings to %s\n",grub_cfgX);
+        printf("Error: Failed to apply resolution settings to %s\n", grub_cfgX);
     }
 
     snprintf(arg_static, sizeof(arg_static), "-o \"%s/VC365.iso\" \"%s\"", iso, dir);
@@ -219,13 +309,15 @@ void qemu_run(const int a)
     if (a)
     {
         printf("Running QEMU ...\n");
-        snprintf(arg_static, sizeof(arg_static),"-drive file=\"%s/VC365.iso\",media=cdrom -bios /usr/share/ovmf/x64/OVMF.4m.fd -display gtk -device virtio-vga %s %s" , iso,fullS,kvm);
-        run("qemu-system-x86_64",arg_static,q_arg_optional,"can not run qemu");
+        snprintf(arg_static, sizeof(arg_static),
+                 "-drive file=\"%s/VC365.iso\",media=cdrom -bios /usr/share/ovmf/x64/OVMF.4m.fd -display gtk -device virtio-vga %s %s",
+                 iso, fullS, kvm);
+        run("qemu-system-x86_64", arg_static, q_arg_optional, "can not run qemu");
     }
 }
 
 int main(const int argc, char** argv)
 {
-    qemu_run(create_iso(create_folders(arguments(argc, argv,initialization(temp_root())))));
+    qemu_run(create_iso(create_folders(arguments(argc, argv, initialization(temp_root())))));
     return 0;
 }
