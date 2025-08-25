@@ -38,19 +38,20 @@ makepkg -si
 
 ```console
 grub-qemu --help
-Usage: grub-qemu [--qemu "Argument"] [--custom-grub "Directory"] [--enable-kvm]
- [--disable-full-screen] [--disable-theme] [-v] [-h]
+Usage: grub-qemu [--qemu "Argument"] [--custom-grub "Directory"] [--custom-theme "Directory"]
+      [--custom-resolution "res"] [--enable-kvm] [--disable-full-screen] [--disable-theme] [-v] [-h]
 Options:
   -q, --qemu "Argument"           Use custom argument for QEMU.
   -c, --custom-grub "Directory"   Use custom grub.
+  -t, --custom-theme "Directory"  Use custom theme (Automatically use font).
+  -r, --custom-resolution "res"   Use custom resolution (Example 1366x768).
   --enable-kvm                      Enable KVM for QEMU.
   --disable-full-screen             Disable full screen mode.
   --disable-theme                   Disable theme grub.
 
   -h, --help                        Show this help message.
   -v, --version                     Show version.
-                 Credit : VC365 (https://github.com/VC365) 
-```
+                 Credit : VC365 (https://github.com/VC365) ```
 ## Author
 
 [VC365](https://github.com/VC365)
