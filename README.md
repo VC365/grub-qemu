@@ -64,9 +64,10 @@ Options:
 ## Preview
 
  Full Screen mode
-![preview1](https://raw.githubusercontent.com/VC365/grub-qemu/master/dood/۱نماگرفت.png)
- Gnome
-![preview2](https://raw.githubusercontent.com/VC365/grub-qemu/master/dood/۲نماگرفت.jpg)
+![preview1](https://raw.githubusercontent.com/VC365/grub-qemu/master/dood/نماگرفت۱.png)
+
+   Gnome
+![preview2](https://raw.githubusercontent.com/VC365/grub-qemu/master/dood/نماگرفت۲.jpg)
  
 ## Author
 
