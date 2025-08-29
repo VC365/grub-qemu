@@ -7,6 +7,6 @@ project(grub-qemu C)
 set(CMAKE_C_STANDARD 11)
 
 
-add_executable(grub-qemu source/main.c
-        source/src/temp.h
+add_executable(grub-qemu main.c
+        src/temp.h
 )
